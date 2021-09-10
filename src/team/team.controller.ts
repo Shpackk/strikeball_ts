@@ -1,24 +1,29 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Delete, Body } from '@nestjs/common';
+import { KickUserDto } from './dto/kick-user.dto';
+import { TeamService } from './team.service';
 
 @Controller('team')
 export class TeamController {
-    @Get('/:id/join')
-    joinTeam(@Param('id') id) {
-        return 'you want to join team num ' + id
+
+    constructor(private readonly teamService: TeamService){}
+
+    @Patch('/:id/join')
+    joinTeam(@Param('id') teamId : number) {
+        return this.teamService.join(teamId)
     }
 
-    @Get('/:id/leave')
-    leaveTeam(@Param('id') id) {
-        return 'you want to leave team num ' + id
+    @Delete('/:id/leave')
+    leaveTeam(@Param('id') teamId: number) {
+        return this.teamService.leave(teamId)
     }
 
     @Get('/:id/players')
-    playersByTeam(@Param('id') id) {
-        return 'view players in team num ' + id
+    playersByTeam(@Param('id') teamId: number) {
+        return this.teamService.getPlayers(teamId)
     }
 
-    @Get('/:id/kick')
-    kickPlayer(@Param('id') id) {
-        return 'kick from team num ' + id
+    @Delete('/:id/kick')
+    kickPlayer(@Param('id') teamId: number, @Body() kickDto: KickUserDto) {
+        return this.teamService.kickPlayer(teamId, kickDto)
     }
 }
