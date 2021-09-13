@@ -1,8 +1,8 @@
 {
-  "name": "strikeball-app",
+  "name": "strikball",
   "version": "0.0.1",
-  "description": "strikeball-app-typescript",
-  "author": "Shpackk",
+  "description": "",
+  "author": "",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
