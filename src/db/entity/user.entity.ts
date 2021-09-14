@@ -23,7 +23,7 @@ export class User {
     picture: string
 
     @ManyToOne(() => Roles, (role: Roles) => role.id)
-    role: number;
+    role: Roles;
 
     @ManyToOne(() => Team, (team: Team) => team.id)
     team: number;

@@ -31,7 +31,7 @@ export class Requests {
     @Column({nullable: true})
     teamId: number
 
-    @OneToOne(() => User, (user: User) => user.id)
+    @OneToOne(() => User)
     @JoinColumn()
-    user: number
+    user: User
 }
