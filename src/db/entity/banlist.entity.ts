@@ -12,7 +12,7 @@ export class Banlist {
     @Column()
     description: string
 
-    @OneToOne(() => User, (user: User) => user.id)
+    @OneToOne(() => User)
     @JoinColumn()
-    user: number
+    user: User
 }
