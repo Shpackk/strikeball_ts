@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Banlist } from 'src/db/entity/banlist.entity';
 import { Roles } from 'src/db/entity/roles.entity';
 import { User } from 'src/db/entity/user.entity';
 import { AuthController } from './auth.controller';
@@ -9,7 +10,7 @@ import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Roles]),
+    TypeOrmModule.forFeature([User, Roles, Banlist]),
     JwtModule.register({
       secret: 'supersecret',
       signOptions:{expiresIn: '24h'}
