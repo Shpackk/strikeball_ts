@@ -1,55 +1,82 @@
-import { Get, Controller, Post, Param, Patch, Delete, UseGuards } from '@nestjs/common';
+import { Get, Controller, Post, Param, Patch, Delete, UseGuards, Request, Body } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UserService } from './user.service';
 
-@Controller('user')
+@Controller()
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
+
+  @Post('user/forgot-password')
+  forgotPassword(@Body() user) {
+    return this.userService.forgotPassRequest(user.email);
+  }
+  //done
   @UseGuards(JwtAuthGuard)
-  @Get('/requests')
-  getRequests() {
-    return this.userService.extractRequests();
+  @Get('user/requests')
+  getRequests(@Request() req) {
+    return this.userService.extractRequests(req.user);
   }
 
-  @Post('/forgot-password')
-  forgotPassword() {
-    return this.userService.forgotPassRequest();
-  }
 
-  @Post('/reset-password/:accessToken')
-  resetPass(@Param() accesToken: string) {
-    return this.userService.resetPassword(accesToken)
+  @Post('user/reset-password/:accessToken')
+  resetPass(@Param() accesToken, @Body() body) {
+    return this.userService.resetPassword(accesToken, body)
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('/update')
+  @Patch('user/update')
   updateProfile() {
     return this.userService.updateInfo()
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/profile')
+  @Get('user/profile')
   viewProfile() {
     return this.userService.profile()
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('/requests/delete/:id')
-  deleteRequest(@Param() requestId: number) {
-    return this.userService.deleteReq(requestId)
+  @Delete('user/requests/delete/:id')
+  deleteRequest(@Param() request, @Request() req) {
+    return this.userService.deleteReq(request.id, req.user)
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/:id')
+  @Get('user/:id')
   userById(@Param() userId: number) {
     return this.userService.findById(userId)
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/:id/ban')
-  banUser(@Param() userId: number) {
-    return this.userService.banUser(userId)
+  @Post('user/:id/ban')
+  banUser(@Param() user, @Body() banInfo) {
+    return this.userService.banUser(user.id, banInfo)
+  }
+
+  @Get('/managers')
+  getManagers() {
+    
+  }
+
+  @Get('/requests')
+  adminManagerRequests() {
+    return this.userService.requests()
+  }
+
+  @Get('/users')
+  getAllUsers() {
+    
+  }
+
+  @Patch('/requests/:id')
+  populateReq() {
+    
+  }
+
+  @Get('/manager/:id')
+  findOneManager() {
+    
   }
 
 }
