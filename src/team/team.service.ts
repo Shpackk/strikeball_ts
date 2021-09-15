@@ -21,18 +21,50 @@ export class TeamService {
 
     //passed info
     async joinTeam(teamId: number, user: User, type) {
-        const newRequest = new Requests()
-        newRequest.requestType = type
-        newRequest.userEmail = user.email
-        newRequest.userName = user.name
-        newRequest.teamId = teamId
-        newRequest.user = user
-        await this.reqRepository.save(newRequest)
+        try {
+            const found = await this.reqRepository.findOne({
+                where: {
+                    user: user
+                }
+            })
+            if (found)
+                return {message: "You already applied"}
+
+            await this.reqRepository.save({
+                requestType : type,
+                userEmail: user.email,
+                userName:user.name,
+                teamId: teamId,
+                user: user
+            })
+            return {message: "Sucessfully applied"}
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     //passed info
-    leaveTeam(teamId: number) {
-        return `you want to leave team ${teamId}`
+    async leaveTeam(teamId: number, user: User, type) {
+        try {
+            const found = await this.reqRepository.findOne({
+                where: {
+                    user: user
+                }
+            })
+            if (found)
+                return { message: "You already applied" }
+            
+            await this.reqRepository.save({
+                requestType: type,
+                userEmail: user.email,
+                userName: user.name,
+                teamId: teamId,
+                user: user,
+            })
+            return {message: "Sucessfully applied"}
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     kickPlayer(teamId: number, kickInfo: KickInfoDto) {
