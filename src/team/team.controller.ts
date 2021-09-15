@@ -23,8 +23,8 @@ export class TeamController {
         
     @UseGuards(JwtAuthGuard)
     @Delete('/:id/leave')
-    leaveTeam(@Param() team: TeamIdDto) {
-        return this.teamService.leaveTeam(team.id)
+    leaveTeam(@Param() team: TeamIdDto, @Request() req) {
+        return this.teamService.leaveTeam(team.id, req.user, 'leave')
     }
 
 
