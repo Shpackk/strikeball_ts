@@ -1,6 +1,6 @@
 export class RegUserDto {
     readonly email: string
     readonly name: string
-    readonly role: string
+    role: string
     password: string
 }
