@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { KickInfoDto } from 'src/auth/dto/kick-info.dto';
 import { Requests } from 'src/db/entity/requests.entity';
 import { User } from 'src/db/entity/user.entity';
+import { requestsQueries } from 'src/postgrQuery/requests-table-queries';
+import { userQueries } from 'src/postgrQuery/user-table-queries';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -11,12 +13,16 @@ export class TeamService {
     constructor(
         @InjectRepository(Requests)
         private reqRepository: Repository<Requests>,
-        @InjectRepository(User)
-        private userRepository: Repository<User>
+        private userQuery: userQueries,
+        private reqQuery: requestsQueries
     ){}
     //passed info
-    viewPlayersByTeamId(teamId: number) {
-        return `players in team id ${teamId}`
+    async viewPlayersByTeamId(teamId: number) {
+        try {
+            return await this.userQuery.playersByTeam(teamId)
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     //passed info
@@ -27,16 +33,10 @@ export class TeamService {
                     user: user
                 }
             })
-            if (found)
-                return {message: "You already applied"}
-
-            await this.reqRepository.save({
-                requestType : type,
-                userEmail: user.email,
-                userName:user.name,
-                teamId: teamId,
-                user: user
-            })
+            if (found) {
+                return { message: "You already applied" }
+            }
+            await this.reqQuery.createReq(teamId, type, user)
             return {message: "Sucessfully applied"}
         } catch (error) {
             console.log(error)
@@ -54,13 +54,7 @@ export class TeamService {
             if (found)
                 return { message: "You already applied" }
             
-            await this.reqRepository.save({
-                requestType: type,
-                userEmail: user.email,
-                userName: user.name,
-                teamId: teamId,
-                user: user,
-            })
+            await this.reqQuery.createReq(teamId, type, user)
             return {message: "Sucessfully applied"}
         } catch (error) {
             console.log(error)
