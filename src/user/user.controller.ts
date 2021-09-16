@@ -32,8 +32,8 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('user/profile')
-  viewProfile() {
-    return this.userService.profile()
+  viewProfile(@Request() req) {
+    return this.userService.profile(req.user)
   }
 
   @UseGuards(JwtAuthGuard)
@@ -70,8 +70,8 @@ export class UserController {
   }
 
   @Patch('/requests/:id')
-  populateReq() {
-    
+  populateReq(@Body() decision, @Param() req) {
+    return this.userService.populateReq(decision.approved, req.id)
   }
 
   @Get('/manager/:id')
