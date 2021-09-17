@@ -5,11 +5,11 @@ import { Banlist } from 'src/db/entity/banlist.entity';
 import { Requests } from 'src/db/entity/requests.entity';
 import { Roles } from 'src/db/entity/roles.entity';
 import { User } from 'src/db/entity/user.entity';
-import { requestsQueries } from 'src/postgrQuery/requests-table-queries';
-import { userQueries } from 'src/postgrQuery/user-table-queries';
+import { requestsQueries } from 'src/repositoriers/requests-table';
+import { userQueries } from 'src/repositoriers/user-table';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtStrategy } from '../passport/jwt.strategy';
 
 @Module({
   imports: [
