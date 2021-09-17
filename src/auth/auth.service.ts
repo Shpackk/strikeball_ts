@@ -7,8 +7,8 @@ import { RegUserDto } from './dto/register-user.dto';
 import { Roles } from 'src/db/entity/roles.entity';
 import { JwtService } from '@nestjs/jwt';
 import { Banlist } from 'src/db/entity/banlist.entity';
-import { userQueries } from 'src/postgrQuery/user-table-queries';
-import { requestsQueries } from 'src/postgrQuery/requests-table-queries';
+import { userQueries } from 'src/repositoriers/user-table';
+import { requestsQueries } from 'src/repositoriers/requests-table';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +22,7 @@ export class AuthService {
         private reqQuery: requestsQueries
     ) { }
     //users registration
-    async register(user: RegUserDto ) {
+    async register(user: RegUserDto, file ) {
         try {
             user.password = await bcrypt.hash(user.password, 10)
             const dbRole = await this.rolesRepository.findOne({
@@ -31,13 +31,12 @@ export class AuthService {
                 }
             })
             if (user.role == 'user') {
-                await this.userQuery.createUser(user.email,user.name,user.password,dbRole)
+                await this.userQuery.createUser(user.email,user.name,user.password,dbRole, file.path)
                 return { messsage: 'You can login now!' }
             } else {
                 await this.reqQuery.createReq(null, 'register', user)
                 return {message : 'You applied! Wait until we approve'}
             }
-
         } catch (error) {
             console.log(error)
         }
