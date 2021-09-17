@@ -1,6 +1,9 @@
-import { Get, Controller, Post, Param, Patch, Delete, UseGuards, Request, Body } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Get, Controller, Post, Param, Patch, Delete, UseGuards, Request, Body, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { JwtAuthGuard } from 'src/passport/jwt-auth.guard';
 import { UserService } from './user.service';
+import { imageFileFilter,fileNameGen } from 'src/services/fileUploadHandler';
 
 @Controller()
 export class UserController {
@@ -26,8 +29,15 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('user/update')
-  updateProfile() {
-    return this.userService.updateInfo()
+  @UseInterceptors(FileInterceptor('picture', {
+    storage: diskStorage({
+      destination: './uploads/',
+      filename: fileNameGen,
+    }),
+    fileFilter: imageFileFilter
+  }))
+  updateProfile(@Body() body, @UploadedFile() file: Express.Multer.File, @Request() req) {
+    return this.userService.updateInfo(body,file, req.user)
   }
 
   @UseGuards(JwtAuthGuard)
@@ -56,7 +66,7 @@ export class UserController {
 
   @Get('/managers')
   getManagers() {
-    
+    return this.userService.allManagers()
   }
 
   @Get('/requests')
@@ -64,9 +74,9 @@ export class UserController {
     return this.userService.requests()
   }
 
-  @Get('/users')
-  getAllUsers() {
-    
+  @Get('/users/:id?')
+  getAllUsers(@Param() team) {
+    return this.userService.findAll(team.id)
   }
 
   @Patch('/requests/:id')
@@ -75,8 +85,8 @@ export class UserController {
   }
 
   @Get('/manager/:id')
-  findOneManager() {
-    
+  findOneManager(@Param() user) {
+    return this.userService.getOneManager(user.id)
   }
 
 }
