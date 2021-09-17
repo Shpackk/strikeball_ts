@@ -3,8 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { KickInfoDto } from 'src/auth/dto/kick-info.dto';
 import { Requests } from 'src/db/entity/requests.entity';
 import { User } from 'src/db/entity/user.entity';
-import { requestsQueries } from 'src/postgrQuery/requests-table-queries';
-import { userQueries } from 'src/postgrQuery/user-table-queries';
+import { requestsQueries } from 'src/repositoriers/requests-table';
+import { teamQueries } from 'src/repositoriers/team-table';
+import { userQueries } from 'src/repositoriers/user-table';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -14,7 +15,8 @@ export class TeamService {
         @InjectRepository(Requests)
         private reqRepository: Repository<Requests>,
         private userQuery: userQueries,
-        private reqQuery: requestsQueries
+        private reqQuery: requestsQueries,
+        private teamQuery: teamQueries
     ){}
     //passed info
     async viewPlayersByTeamId(teamId: number) {
@@ -61,8 +63,14 @@ export class TeamService {
         }
     }
 
-    kickPlayer(teamId: number, kickInfo: KickInfoDto) {
-        return `kick player ${kickInfo.userId} from team ${teamId} because ${kickInfo.description}`
+    async kickPlayer(teamId: number, kickInfo: KickInfoDto) {
+        try {
+            await this.userQuery.clearTeamRelation(kickInfo.userId)
+            await this.teamQuery.deleteFromTeam(kickInfo.userId, teamId)
+            return {message: `User ${kickInfo.userId} kicked from team id:${teamId}`}
+        } catch (error) {
+            console.log(error)
+        }
     }
 
 }
