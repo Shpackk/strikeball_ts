@@ -25,6 +25,7 @@ export class AuthService {
     //users registration
     async register(user: RegUserDto, file ) {
         try {
+            const filepath = file ? file.path : null
             const isRegistered = await this.userQuery.findOne(user.email)
             if(isRegistered) throw new ConflictException('This User Is Already Registered')
             user.password = await bcrypt.hash(user.password, 10)
@@ -35,7 +36,7 @@ export class AuthService {
             })
             if(!dbRole) throw new ConflictException('Invalid Role')
             if (user.role == 'user') {
-                await this.userQuery.createUser(user.email,user.name,user.password,dbRole, file.path)
+                await this.userQuery.createUser(user.email,user.name,user.password,dbRole, filepath)
                 return { messsage: 'You can login now!' }
             } else {
                 await this.reqQuery.createReq(null, 'register', user)
