@@ -14,6 +14,7 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { requireAdmin } from 'src/middleware/requireAdmin';
 import { restrictUser } from 'src/middleware/restrictUser';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { restrictUser } from 'src/middleware/restrictUser';
     JwtModule.register({
       secret: 'supersecret',
       signOptions:{expiresIn: '15m'}
-    })
+    }),
+    MailModule
   ],
   controllers: [UserController],
   providers: [UserService, JwtStrategy, userQueries,requestsQueries,teamQueries]
