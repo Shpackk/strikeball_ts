@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { KickInfoDto } from 'src/auth/dto/kick-info.dto';
 import { Requests } from 'src/db/entity/requests.entity';
 import { User } from 'src/db/entity/user.entity';
+import { MailService } from 'src/mail/mail.service';
 import { requestsQueries } from 'src/repositoriers/requests-table';
 import { teamQueries } from 'src/repositoriers/team-table';
 import { userQueries } from 'src/repositoriers/user-table';
@@ -16,7 +17,8 @@ export class TeamService {
         private reqRepository: Repository<Requests>,
         private userQuery: userQueries,
         private reqQuery: requestsQueries,
-        private teamQuery: teamQueries
+        private teamQuery: teamQueries,
+        private mailService:MailService
     ){}
     //passed info
     async viewPlayersByTeamId(teamId: number) {
@@ -72,6 +74,8 @@ export class TeamService {
             if (!teamExist) throw new NotFoundException('This Team Does Not Exist')
             await this.userQuery.clearTeamRelation(kickInfo.userId)
             await this.teamQuery.deleteFromTeam(kickInfo.userId, teamId)
+            const user = await this.userQuery.findOneById(kickInfo.userId)
+            this.mailService.sendUserConfirmation(user.email,'Kick','You were kicked')
             return {message: `User ${kickInfo.userId} kicked from team id:${teamId}`}
         } catch (error) {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
