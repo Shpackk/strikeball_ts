@@ -4,7 +4,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegUserDto } from './dto/register-user.dto';
-import { JwtAuthGuard } from 'src/passport/jwt-auth.guard';
 import { fileNameGen, imageFileFilter } from 'src/services/fileUploadHandler';
 
 @Controller('auth')
@@ -19,18 +18,13 @@ export class AuthController {
         }),
     fileFilter: imageFileFilter
   }))
-    async register(@Body() user: RegUserDto, @UploadedFile() file: Express.Multer.File) {
+    async register(@Body() user: RegUserDto, @UploadedFile() file: Express.Multer.File): Promise<Object> {
         return await this.authService.register(user,file)
     }
     
     @Post('/login')
-    login(@Body() user: LoginUserDto) {
-        return this.authService.login(user)
+    async login(@Body() user: LoginUserDto): Promise<Object> {
+        return await this.authService.login(user)
     }
 
-    @UseGuards(JwtAuthGuard)
-    @Get('/user')
-    getUser(@Request() req) {
-        return req.user
-    }
 }
