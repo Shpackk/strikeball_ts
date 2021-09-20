@@ -8,6 +8,7 @@ import { teamQueries } from 'src/repositoriers/team-table';
 import { userQueries } from 'src/repositoriers/user-table';
 import { Repository } from 'typeorm';
 import { hash } from 'src/services/passwordHash'
+import { MailService } from 'src/mail/mail.service';
 
 
 @Injectable()
@@ -18,7 +19,8 @@ export class UserService {
         private jwtService: JwtService,
         private userQuery: userQueries,
         private requestQuery: requestsQueries,
-        private teamQuery: teamQueries
+        private teamQuery: teamQueries,
+        private mailService: MailService
     ) { }
 
     async extractRequests(user) {
@@ -44,7 +46,9 @@ export class UserService {
             const token = this.jwtService.sign({
                 id: dbUser.id
             })
-            return {restoreLink: `localhost:3000/user/reset-password/${token}`}
+            const restoreLink = `localhost:3000/user/reset-password/${token}`
+            this.mailService.sendUserConfirmation(email,'Password Rest', restoreLink)
+            return {message: `Link Was Sent To Your Email ${email}`}
         } catch (error) {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
         }
@@ -136,15 +140,17 @@ export class UserService {
                     description: banInfo.description,
                     user: user
                 })
+                this.mailService.sendUserConfirmation(user.email,banInfo.type,'You are Banned')
                 return { message: "ban sucessfull" }
 
             } else if (banInfo.type == 'unban' && isBanned) {
                 await this.banRepository.delete(isBanned)
+                this.mailService.sendUserConfirmation(user.email,banInfo.type,'You are UnBanned')
                 return { message: "unban sucessfull" }
 
             } else {
                 throw new ConflictException("Unknown command or user's account already have this status")
-        }
+            }
         } catch (error) {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)  
         }
@@ -169,6 +175,7 @@ export class UserService {
                 await this.changeTeamStatus(request.user.id, request.teamId, request.requestType)
             }
             await this.requestQuery.delete(request)
+            this.mailService.sendUserConfirmation(request.userEmail,request.requestType,String(isApproved))
             return {message: `Request ${id} is ${isApproved}`}
         } catch (error) {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
