@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt'
@@ -31,7 +31,7 @@ export class UserService {
                 teamId: request.teamId
             }
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 
@@ -39,14 +39,14 @@ export class UserService {
         try {
             const dbUser = await this.userQuery.findOne(email)
             if (!dbUser) {
-                return {message:'not found'}
+                throw new NotFoundException('User Not Found')
             }
             const token = this.jwtService.sign({
                 id: dbUser.id
             })
             return {restoreLink: `localhost:3000/user/reset-password/${token}`}
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 
@@ -55,21 +55,25 @@ export class UserService {
             if (body.newPass != body.confirmPass) {
                 return {message: "passwords dont match"}
             }
-            const userInfo = this.jwtService.verify(token.accessToken)
-            const hashedPassword = bcrypt.hashSync(body.newPass, 10)
+            const userInfo = this.jwtService.verify(token)
             const user = await this.userQuery.findOneById(userInfo.id)
+            if(!user) throw new NotFoundException('User Not Found')
+            const hashedPassword = bcrypt.hashSync(body.newPass, 10)
             user.password = hashedPassword
             this.userQuery.saveUser(user)
             return {message: 'Password changed'}
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 
 
     async updateInfo(userInfo, file, user) {
         try {
+            const isEmailTaken = await this.userQuery.findOne(userInfo.email)
+            if(isEmailTaken) throw new ConflictException('This Email Is Taken')
             const userDb = await this.userQuery.findOneById(user.id)
+            if(!userDb) throw new NotFoundException('User Not Found')
             userDb.picture = file ? file.path : null
             userDb.email = userInfo.email ? userInfo.email : userDb.email
             userDb.name = userInfo.name ? userInfo.name : userDb.name
@@ -78,7 +82,7 @@ export class UserService {
             }
             await this.userQuery.saveUser(userDb)
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 
@@ -86,28 +90,33 @@ export class UserService {
         try {
             return await this.userQuery.findProfileInfo(user.id)
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 
     async deleteReq(requestId, user) {
         try {
             const request = await this.requestQuery.findOne(requestId,user)
-            if (request) {
-                this.requestQuery.delete(request)
-                return {message: `request id:${requestId} deleted`}
+            if (!request) {
+                throw new NotFoundException('Request Not Found')
             }
-            return {message: "Something went wrong"}
+            this.requestQuery.delete(request)
+            return {message: `request id:${requestId} deleted`}
         } catch (error) {
-            console.log(error)            
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)         
         }
     }
 
     async findById(userId: number) {
         try {
-            return await this.userQuery.findOneById(userId)
+            const user = await this.userQuery.findOneById(userId)
+            if (!user) {
+                throw new NotFoundException('User Not Found')
+            }
+            delete user.password
+            return user
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)  
         }
     }
 
@@ -115,7 +124,7 @@ export class UserService {
         banInfo.type = banInfo.type.toLowerCase()
         try {
             const user = await this.userQuery.findOneById(userId)
-            if (!user) return { message: "No such user" }
+            if (!user) throw new NotFoundException('User Not Found')
             const isBanned = await this.banRepository.findOne({
                 where: {
                     user
@@ -134,10 +143,10 @@ export class UserService {
                 return { message: "unban sucessfull" }
 
             } else {
-                return {message: "Unknown command or user's account already have this status"}
+                throw new ConflictException("Unknown command or user's account already have this status")
         }
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)  
         }
     }
 
@@ -145,14 +154,14 @@ export class UserService {
         try {
             return await this.requestQuery.findAllRequests()
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
     async populateReq(isApproved, id) {
         try {
             const request = await this.requestQuery.reqAndUser(id)
-            if (!request) return { message: "not found" }
+            if (!request) throw new NotFoundException('There Is No Such Request')
             if (request.requestType == 'register' && isApproved) {
                 await this.userQuery.createUser(request.userEmail,request.userName,request.userPass,2, null)
             } else if (isApproved) {
@@ -160,14 +169,16 @@ export class UserService {
                 await this.changeTeamStatus(request.user.id, request.teamId, request.requestType)
             }
             await this.requestQuery.delete(request)
+            return {message: `Request ${id} is ${isApproved}`}
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
     async changeTeamStatus(userId, teamId, requestType) {
         try {
             if (requestType == 'join') {
                 const user = await this.userQuery.findOneById(userId)
+                if(!user) throw new NotFoundException('User Not Found')
                 user.team = teamId
                 await this.userQuery.saveUser(user)
                 return await this.addToTeam(userId, teamId)
@@ -176,7 +187,7 @@ export class UserService {
                 return await this.userQuery.clearTeamRelation(userId)
             }
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
@@ -190,13 +201,14 @@ export class UserService {
             }
             return
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
     async addToTeam(userId, teamId) {
         try {
             const teamDb = await this.teamQuery.findOne(teamId)
+            if(!teamDb) throw new NotFoundException('There Is No Such Team')
             if (teamDb.players != null) {
                 const allPlayers = teamDb.players.split(',').map(Number).filter(i => {
                     if (i === 0) {
@@ -217,7 +229,7 @@ export class UserService {
                 return `Player ${userId} joined team ${teamId}`
             }
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
@@ -225,20 +237,24 @@ export class UserService {
         try {
             const manager = await this.userQuery.findOneById(userId)
             if (manager.role.id != 2) {
-                return {message: 'This user is not a manager'}
+                throw new ConflictException('User Is Not A Manager')
             }
             delete manager.password
             return manager
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
     async findAll(teamId) {
         try {
-            return await this.userQuery.findAll(teamId)
+            const team = await this.userQuery.findAll(teamId)
+            if (!team) {
+                throw new NotFoundException('Team Not Found')
+            }
+            return team
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
@@ -249,7 +265,7 @@ export class UserService {
                 return delete manager.password 
             })
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 }
