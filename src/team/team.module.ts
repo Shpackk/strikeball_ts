@@ -10,9 +10,13 @@ import { userQueries } from 'src/repositoriers/user-table';
 import { TeamController } from './team.controller';
 import { TeamService } from './team.service';
 import { requireAdmin } from 'src/middleware/requireAdmin';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Requests, User,Team])],
+  imports: [
+    TypeOrmModule.forFeature([Requests, User, Team]),
+    MailModule
+  ],
   controllers: [TeamController],
   providers: [TeamService, JwtStrategy, userQueries,requestsQueries,teamQueries]
 })
