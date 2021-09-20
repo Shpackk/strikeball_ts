@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt'
@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Banlist } from 'src/db/entity/banlist.entity';
 import { userQueries } from 'src/repositoriers/user-table';
 import { requestsQueries } from 'src/repositoriers/requests-table';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -24,12 +25,15 @@ export class AuthService {
     //users registration
     async register(user: RegUserDto, file ) {
         try {
+            const isRegistered = await this.userQuery.findOne(user.email)
+            if(isRegistered) throw new ConflictException('This User Is Already Registered')
             user.password = await bcrypt.hash(user.password, 10)
             const dbRole = await this.rolesRepository.findOne({
                 where: {
                     name: user.role
                 }
             })
+            if(!dbRole) throw new ConflictException('Invalid Role')
             if (user.role == 'user') {
                 await this.userQuery.createUser(user.email,user.name,user.password,dbRole, file.path)
                 return { messsage: 'You can login now!' }
@@ -38,7 +42,7 @@ export class AuthService {
                 return {message : 'You applied! Wait until we approve'}
             }
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 
@@ -46,18 +50,18 @@ export class AuthService {
     async login(user: LoginUserDto) {
         try {
             const userFromDb = await this.userQuery.findOne(user.email)
-            if (!userFromDb) return { message: "not found" }
+            if (!userFromDb) throw new NotFoundException('User Not Found')
             
             const isBanned = await this.banRepository.findOne({
                 where: {
                     user: userFromDb
                 }
             })
-            if (isBanned) return { message: "You are banned from service" }
+            if (isBanned) throw new ForbiddenException('You Are Banned From Service')
             
             const compare = await bcrypt.compare(user.password, userFromDb.password)
             if (!compare) {
-                return {message: "wrong password"}
+                throw new ConflictException('Wrong Password')
             }
             const token = this.jwtService.sign({
                 id: userFromDb.id,
@@ -72,7 +76,7 @@ export class AuthService {
                 token
             }
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 }
