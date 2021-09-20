@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { KickInfoDto } from 'src/auth/dto/kick-info.dto';
 import { Requests } from 'src/db/entity/requests.entity';
@@ -23,7 +23,7 @@ export class TeamService {
         try {
             return await this.userQuery.playersByTeam(teamId)
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
@@ -36,16 +36,17 @@ export class TeamService {
                 }
             })
             if (found) {
-                return { message: "You already applied" }
+                throw new ConflictException('You Already Applied. Wait Until We Approve')
             }
+            const teamExist = await this.teamQuery.findOne(teamId)
+            if(!teamExist) throw new NotFoundException('This Team Does Not Exist')
             await this.reqQuery.createReq(teamId, type, user)
             return {message: "Sucessfully applied"}
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
-    //passed info
     async leaveTeam(teamId: number, user: User, type) {
         try {
             const found = await this.reqRepository.findOne({
@@ -53,23 +54,27 @@ export class TeamService {
                     user: user
                 }
             })
-            if (found)
-                return { message: "You already applied" }
-            
+            if (found) {
+                throw new ConflictException('You Already Applied. Wait Until We Approve')
+            }
+            const teamExist = await this.teamQuery.findOne(teamId)
+            if(!teamExist) throw new NotFoundException('This Team Does Not Exist')
             await this.reqQuery.createReq(teamId, type, user)
             return {message: "Sucessfully applied"}
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
     async kickPlayer(teamId: number, kickInfo: KickInfoDto) {
         try {
+            const teamExist = await this.teamQuery.findOne(teamId)
+            if (!teamExist) throw new NotFoundException('This Team Does Not Exist')
             await this.userQuery.clearTeamRelation(kickInfo.userId)
             await this.teamQuery.deleteFromTeam(kickInfo.userId, teamId)
             return {message: `User ${kickInfo.userId} kicked from team id:${teamId}`}
         } catch (error) {
-            console.log(error)
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
 
