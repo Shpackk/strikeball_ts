@@ -9,7 +9,7 @@ import { requestsQueries } from 'src/repositoriers/requests-table';
 import { userQueries } from 'src/repositoriers/user-table';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from '../passport/jwt.strategy';
+import { JwtStrategy } from '../passport/jwtauth/jwt.strategy';
 
 @Module({
   imports: [
