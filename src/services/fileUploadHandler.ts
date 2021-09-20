@@ -1,7 +1,7 @@
 export const imageFileFilter = (req, file, callback) => {
     if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
         const error = {
-          message: 'unsupported filetype'
+          message: 'Unsupported Filetype'
       }
     return callback(error, false);
   }
