@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/db/entity/user.entity";
-import { IsNull, Not, NoVersionOrUpdateDateColumnError, Repository } from "typeorm";
+import { IsNull, Not, Repository } from "typeorm";
 
 
 @Injectable()
@@ -22,7 +22,7 @@ export class userQueries{
                 picture: filePath ? filePath : null
             })
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -35,7 +35,7 @@ export class userQueries{
                 relations:['role']
             })
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -48,7 +48,7 @@ export class userQueries{
                 relations:['role']
             })
         } catch (error) {
-            console.log(error)
+           throw error
         }
     }
 
@@ -62,7 +62,7 @@ export class userQueries{
                 relations:['role','team']
             })
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -75,7 +75,7 @@ export class userQueries{
                 select:['id','name','email']
             }) 
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -83,7 +83,7 @@ export class userQueries{
         try {
             await this.userRepo.save(user)
         } catch (error) {
-            console.log(error)
+           throw error
         }
     }
 
@@ -93,7 +93,7 @@ export class userQueries{
             userDb.team = null
             await this.saveUser(userDb)
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -108,9 +108,8 @@ export class userQueries{
             return users.filter(user => {
                 return delete user.password
             })
-            //swap filter 
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -122,7 +121,7 @@ export class userQueries{
                 }
             })
         } catch (error) {
-            console.log(error)
+           throw error
         }
     }
 }

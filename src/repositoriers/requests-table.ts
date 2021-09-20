@@ -21,7 +21,7 @@ export class requestsQueries{
                 }
             })
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -30,7 +30,7 @@ export class requestsQueries{
             await this.requestRepo.delete(request)
             return
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -40,7 +40,7 @@ export class requestsQueries{
                 select:['id','requestType','userEmail','teamId']
             })
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -52,7 +52,7 @@ export class requestsQueries{
                 }
             })
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -65,7 +65,7 @@ export class requestsQueries{
                 relations:['user']
             })
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -83,7 +83,7 @@ export class requestsQueries{
         try {
             await this.requestRepo.save(reqObject)
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 

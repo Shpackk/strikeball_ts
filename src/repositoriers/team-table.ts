@@ -20,7 +20,7 @@ export class teamQueries {
              select:['players']
          })
      } catch (error) {
-         console.log(error)
+         throw error
      }   
     }
 
@@ -31,7 +31,7 @@ export class teamQueries {
                 players
             })
         } catch (error) {
-            console.log(error)
+            throw error
         }
     }
 
@@ -46,7 +46,7 @@ export class teamQueries {
             }
             return false
         } catch (error) {
-             console.log(error)
+             throw error
         }
     }
 
