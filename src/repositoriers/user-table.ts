@@ -124,4 +124,16 @@ export class userQueries{
            throw error
         }
     }
+
+    async findAdmin() {
+        try {
+            return await this.userRepo.findOne({
+                where: {
+                    role:3
+                }
+            })
+        } catch (error) {
+            throw error
+        }
+    }
 }
