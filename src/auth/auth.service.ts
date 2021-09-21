@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt'
@@ -76,6 +76,29 @@ export class AuthService {
                 id: userFromDb.id,
                 name: userFromDb.name,
                 roleId: userFromDb.role.id,
+                token
+            }
+        } catch (error) {
+            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    async googleLogin(user) {
+        try {
+            if(!user) throw new InternalServerErrorException('Google Auth Error. Try Again')
+            const role = await this.rolesRepository.findOne(1)
+            user.name = user.email.split('@')[0]
+            const newUser = await this.userQuery.createGoogleUser(user, role)
+            const token = this.jwtService.sign({
+                id: newUser.id,
+                name: newUser.name,
+                email: newUser.email,
+                roleId: newUser.role.id
+            })
+            return {
+                id: newUser.id,
+                name: newUser.name,
+                email: newUser.email,
                 token
             }
         } catch (error) {
