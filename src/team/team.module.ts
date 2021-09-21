@@ -12,10 +12,14 @@ import { TeamService } from './team.service';
 import { requireAdmin } from 'src/middleware/requireAdmin';
 import { MailModule } from 'src/mail/mail.module';
 import { SocketGateWay } from 'src/services/socket.gateway';
+import { MongoLoger } from 'src/middleware/mongoLoger';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Log, LogSchema } from 'src/db/mongo/log.schema';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Requests, User, Team]),
+    MongooseModule.forFeature([{name: Log.name,schema:LogSchema}]),
     MailModule
   ],
   controllers: [TeamController],
@@ -25,6 +29,8 @@ export class TeamModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(requireAdmin)
-      .forRoutes({path: 'team/:id/kick', method:RequestMethod.DELETE})
+      .forRoutes({ path: 'team/:id/kick', method: RequestMethod.DELETE })
+      .apply(MongoLoger)
+      .forRoutes(TeamController)
   }
 }
