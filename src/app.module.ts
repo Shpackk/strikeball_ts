@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { TeamModule } from './team/team.module';
 import { MailModule } from './mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose'
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -14,6 +15,7 @@ import { ConfigModule } from '@nestjs/config';
       envFilePath:'.env'
     }),
     TypeOrmModule.forRoot(),
+    MongooseModule.forRoot(process.env.MONGO_DB_URI),
     UserModule,
     AuthModule,
     TeamModule,
