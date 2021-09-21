@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Banlist } from 'src/db/entity/banlist.entity';
 import { userQueries } from 'src/repositoriers/user-table';
 import { requestsQueries } from 'src/repositoriers/requests-table';
-import { NotFoundError } from 'rxjs';
+import { SocketGateWay } from 'src/services/socket.gateway';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +20,8 @@ export class AuthService {
         private banRepository: Repository<Banlist>,
         private jwtService: JwtService,
         private userQuery: userQueries,
-        private reqQuery: requestsQueries
+        private reqQuery: requestsQueries,
+        private socketMsg: SocketGateWay
     ) { }
     //users registration
     async register(user: RegUserDto, file ) {
@@ -40,6 +41,7 @@ export class AuthService {
                 return { messsage: 'You can login now!' }
             } else {
                 await this.reqQuery.createReq(null, 'register', user)
+                this.socketMsg.notifyAdmin('Manager Reg')
                 return {message : 'You applied! Wait until we approve'}
             }
         } catch (error) {

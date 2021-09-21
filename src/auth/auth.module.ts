@@ -10,6 +10,7 @@ import { userQueries } from 'src/repositoriers/user-table';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from '../passport/jwtauth/jwt.strategy';
+import { SocketGateWay } from 'src/services/socket.gateway';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { JwtStrategy } from '../passport/jwtauth/jwt.strategy';
     })
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy,userQueries,requestsQueries]
+  providers: [AuthService, JwtStrategy,userQueries,requestsQueries, SocketGateWay]
 })
 export class AuthModule {}
