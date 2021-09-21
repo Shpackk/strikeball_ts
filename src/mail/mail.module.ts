@@ -6,12 +6,12 @@ import { MailService } from './mail.service';
   imports: [
     MailerModule.forRoot({
       transport: {
-        host: 'smtp.gmail.com',
+        host: process.env.SMTP_HOST_MAILER,
         port:587,
         secure: false,
         auth: {
-          user: 'victorijja45@gmail.com',
-          pass: 'Gfifhtctyxer11',
+          user: process.env.MAILER_USER,
+          pass: process.env.MAILER_USER_PASSWORD,
         },
       },
       defaults: {
