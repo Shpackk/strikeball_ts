@@ -11,6 +11,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from '../passport/jwtauth/jwt.strategy';
 import { SocketGateWay } from 'src/services/socket.gateway';
+import { GoogleStrategy } from 'src/passport/jwtauth/google.strategy';
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { SocketGateWay } from 'src/services/socket.gateway';
     })
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy,userQueries,requestsQueries, SocketGateWay]
+  providers: [AuthService, JwtStrategy,GoogleStrategy,userQueries,requestsQueries, SocketGateWay]
 })
 export class AuthModule {}
