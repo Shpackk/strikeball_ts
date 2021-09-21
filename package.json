@@ -21,10 +21,11 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js",
     "seed:generate": "ts-node typeorm migration:create -c seed -n ",
-    "seed:run": "npx typeorm migration:run -c seed",
-    "seed:revert": "ts-node typeorm migration:revert -c seed"
+    "migration:run": "npx typeorm migration:run",
+    "migration:revert": "ts-node typeorm migration:revert"
   },
   "dependencies": {
+    "-": "0.0.1",
     "@nestjs-modules/mailer": "^1.6.0",
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^1.0.1",
@@ -36,12 +37,14 @@
     "@nestjs/typeorm": "^8.0.2",
     "@nestjs/websockets": "^8.0.6",
     "@types/multer": "^1.4.7",
+    "@types/passport-google-oauth20": "^2.0.9",
     "bcrypt": "^5.0.1",
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
     "ejs": "^3.1.6",
     "nodemailer": "^6.6.3",
     "passport": "^0.4.1",
+    "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "pg": "^8.7.1",
