@@ -3,16 +3,22 @@ import { userQueries } from "src/repositoriers/user-table";
 
 @WebSocketGateway()
 export class SocketGateWay implements OnGatewayInit{
-
+    
     constructor(
         private userQuery: userQueries,
-    ) { }
-
-    afterInit(server: any) {
-        console.log('sockets runing')
+        ) { }
+        
+        afterInit(server: any) {
+            console.log('sockets runing')
+        }
+        @WebSocketServer()
+        server;
+        
+    handleConnection(client: any, payload: any): void{
+        this.server.on('connection', () => {
+            console.log('socket connected')
+        })
     }
-    @WebSocketServer()
-    server;
     
     async notifyAdmin(@MessageBody() body: string): Promise<void>{
         try {
@@ -44,9 +50,4 @@ export class SocketGateWay implements OnGatewayInit{
         }
     }
 
-    handleConnection(client: any, payload: any): void{
-        this.server.on('connection', () => {
-         console.log('socket connected')
-     })
-    }
 }
