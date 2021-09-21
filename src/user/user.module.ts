@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule, Req, RequestMethod } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from 'src/passport/jwtauth/jwt.strategy';
@@ -16,10 +16,14 @@ import { requireAdmin } from 'src/middleware/requireAdmin';
 import { restrictUser } from 'src/middleware/restrictUser';
 import { MailModule } from 'src/mail/mail.module';
 import { SocketGateWay } from 'src/services/socket.gateway';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Log, LogSchema } from 'src/db/mongo/log.schema';
+import { MongoLoger } from 'src/middleware/mongoLoger';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Roles, Requests, Banlist, Team]),
+    MongooseModule.forFeature([{name: Log.name,schema:LogSchema}]),
     JwtModule.register({
       secret: 'supersecret',
       signOptions:{expiresIn: '15m'}
@@ -51,6 +55,8 @@ export class UserModule implements NestModule {
           {path: '/requests/:id', method: RequestMethod.PATCH},
           {path: '/user/:id', method: RequestMethod.GET},
           {path: '/requests', method: RequestMethod.GET},
-      )
+    )
+      .apply(MongoLoger)
+      .forRoutes(UserController)
   }
 }
