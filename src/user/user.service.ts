@@ -11,7 +11,6 @@ import { hash } from 'src/services/passwordHash'
 import { MailService } from 'src/mail/mail.service';
 import { SocketGateWay } from 'src/services/socket.gateway';
 
-
 @Injectable()
 export class UserService {
     constructor(
@@ -22,7 +21,7 @@ export class UserService {
         private requestQuery: requestsQueries,
         private teamQuery: teamQueries,
         private mailService: MailService,
-        private socketMessage: SocketGateWay
+        private socketMessage: SocketGateWay,
     ) { }
 
     async extractRequests(user) {
@@ -50,7 +49,7 @@ export class UserService {
             })
             const restoreLink = `localhost:3000/user/reset-password/${token}`
             this.mailService.sendUserConfirmation(email, 'Password Rest', restoreLink)
-            return {message: `Link Was Sent To Your Email ${email}`}
+            return { message: `Link Was Sent To Your Email ${email}` }
         } catch (error) {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
         }
