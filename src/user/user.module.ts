@@ -15,6 +15,7 @@ import { UserService } from './user.service';
 import { requireAdmin } from 'src/middleware/requireAdmin';
 import { restrictUser } from 'src/middleware/restrictUser';
 import { MailModule } from 'src/mail/mail.module';
+import { SocketGateWay } from 'src/services/socket.gateway';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { MailModule } from 'src/mail/mail.module';
     MailModule
   ],
   controllers: [UserController],
-  providers: [UserService, JwtStrategy, userQueries,requestsQueries,teamQueries]
+  providers: [UserService, JwtStrategy, userQueries,requestsQueries,teamQueries, SocketGateWay]
 })
 export class UserModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
