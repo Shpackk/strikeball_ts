@@ -26,6 +26,20 @@ export class userQueries{
         }
     }
 
+    async createGoogleUser(user,role) {
+        try {
+            return await this.userRepo.save({
+                email: user.email,
+                name: user.name,
+                picture: user.picture,
+                googleId: user.googleId,
+                role: role
+            })
+        } catch (error) {
+            throw error
+        }
+    }
+
     async findOne(email) {
         try {
             return await this.userRepo.findOne({
