@@ -7,6 +7,7 @@ import { MailService } from 'src/mail/mail.service';
 import { requestsQueries } from 'src/repositoriers/requests-table';
 import { teamQueries } from 'src/repositoriers/team-table';
 import { userQueries } from 'src/repositoriers/user-table';
+import { SocketGateWay } from 'src/services/socket.gateway';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -18,7 +19,8 @@ export class TeamService {
         private userQuery: userQueries,
         private reqQuery: requestsQueries,
         private teamQuery: teamQueries,
-        private mailService:MailService
+        private mailService: MailService,
+        private socketMsg: SocketGateWay
     ){}
     //passed info
     async viewPlayersByTeamId(teamId: number) {
@@ -43,6 +45,7 @@ export class TeamService {
             const teamExist = await this.teamQuery.findOne(teamId)
             if(!teamExist) throw new NotFoundException('This Team Does Not Exist')
             await this.reqQuery.createReq(teamId, type, user)
+            this.socketMsg.notifyAdminManager('Team Join')
             return {message: "Sucessfully applied"}
         } catch (error) {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
@@ -62,6 +65,7 @@ export class TeamService {
             const teamExist = await this.teamQuery.findOne(teamId)
             if(!teamExist) throw new NotFoundException('This Team Does Not Exist')
             await this.reqQuery.createReq(teamId, type, user)
+            this.socketMsg.notifyAdminManager('Team Leave')
             return {message: "Sucessfully applied"}
         } catch (error) {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
@@ -75,7 +79,8 @@ export class TeamService {
             await this.userQuery.clearTeamRelation(kickInfo.userId)
             await this.teamQuery.deleteFromTeam(kickInfo.userId, teamId)
             const user = await this.userQuery.findOneById(kickInfo.userId)
-            this.mailService.sendUserConfirmation(user.email,'Kick','You were kicked')
+            this.mailService.sendUserConfirmation(user.email, 'Kick', 'You were kicked')
+            this.socketMsg.notifyUser('You were kicked', kickInfo.userId)
             return {message: `User ${kickInfo.userId} kicked from team id:${teamId}`}
         } catch (error) {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 

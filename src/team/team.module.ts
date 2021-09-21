@@ -11,6 +11,7 @@ import { TeamController } from './team.controller';
 import { TeamService } from './team.service';
 import { requireAdmin } from 'src/middleware/requireAdmin';
 import { MailModule } from 'src/mail/mail.module';
+import { SocketGateWay } from 'src/services/socket.gateway';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { MailModule } from 'src/mail/mail.module';
     MailModule
   ],
   controllers: [TeamController],
-  providers: [TeamService, JwtStrategy, userQueries,requestsQueries,teamQueries]
+  providers: [TeamService, JwtStrategy, userQueries,requestsQueries,teamQueries,SocketGateWay]
 })
 export class TeamModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
