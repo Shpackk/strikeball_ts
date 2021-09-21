@@ -1,4 +1,7 @@
-import { Get, Controller, Post, Param, Patch, Delete, UseGuards, Request, Body, UseInterceptors, UploadedFile, ParseIntPipe, Query, ParseBoolPipe } from '@nestjs/common';
+import {
+  Get, Controller, Post, Param, Patch, Delete, UseGuards, Request,
+  Body, UseInterceptors, UploadedFile, ParseIntPipe, Query, ParseBoolPipe
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { JwtAuthGuard } from 'src/passport/jwtauth/jwt-auth.guard';
@@ -10,14 +13,14 @@ import { TokenPassReset } from './DTO/tokeToResetPass.dto';
 import { BanInfo } from './DTO/banInfo.dto';
 import { PassReset } from './DTO/resetPass.dto';
 import { User } from 'src/db/entity/user.entity';
-
 @Controller()
 export class UserController {
-  constructor(private readonly userService: UserService) { }
-
+  constructor(
+    private readonly userService: UserService,
+  ) { }
 
   @Post('user/forgot-password')
-  forgotPassword(@Body() user: UserForReset) {
+  async forgotPassword(@Body() user: UserForReset) {
     return this.userService.forgotPassRequest(user.email);
   }
   //done
@@ -26,7 +29,6 @@ export class UserController {
   getRequests(@Request() req) {
     return this.userService.extractRequests(req.user);
   }
-
 
   @Post('user/reset-password/:accessToken')
   resetPass(@Param('accessToken') accesToken: TokenPassReset, @Body() body: PassReset) {
