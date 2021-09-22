@@ -4,15 +4,18 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { JwtAuthGuard } from 'src/passport/jwtauth/jwt-auth.guard';
+import { JwtAuthGuard } from '../../src/passport/jwtauth/jwt-auth.guard';
 import { UserService } from './user.service';
-import { imageFileFilter,fileNameGen } from 'src/services/fileUploadHandler';
+import { imageFileFilter,fileNameGen } from '../../src/services/fileUploadHandler';
 import { UserForReset } from './DTO/userPassReset';
 import { UpdateProfileBody } from './DTO/updateProfileBody.dto';
 import { TokenPassReset } from './DTO/tokeToResetPass.dto';
 import { BanInfo } from './DTO/banInfo.dto';
 import { PassReset } from './DTO/resetPass.dto';
-import { User } from 'src/db/entity/user.entity';
+import { User } from '../../src/db/entity/user.entity';
+import { UserResponseDto } from './DTO/user-response.dto';
+import { UsersRequestDto } from './DTO/users-request.dto';
+import { Requests } from '../../src/db/entity/requests.entity';
 @Controller()
 export class UserController {
   constructor(
@@ -20,18 +23,18 @@ export class UserController {
   ) { }
 
   @Post('user/forgot-password')
-  async forgotPassword(@Body() user: UserForReset) {
+  async forgotPassword(@Body() user: UserForReset): Promise<UserResponseDto> {
     return this.userService.forgotPassRequest(user.email);
   }
   //done
   @UseGuards(JwtAuthGuard)
   @Get('user/requests')
-  getRequests(@Request() req) {
+  getRequests(@Request() req): Promise<UsersRequestDto | UserResponseDto> {
     return this.userService.extractRequests(req.user);
   }
 
   @Post('user/reset-password/:accessToken')
-  resetPass(@Param('accessToken') accesToken: TokenPassReset, @Body() body: PassReset) {
+  resetPass(@Param('accessToken') accesToken: TokenPassReset, @Body() body: PassReset): Promise<UserResponseDto> {
     return this.userService.resetPassword(accesToken, body)
   }
 
@@ -56,7 +59,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Delete('user/requests/delete/:id')
-  async deleteRequest(@Param('id', ParseIntPipe) requestId: number, @Request() req): Promise<Object> {
+  async deleteRequest(@Param('id', ParseIntPipe) requestId: number, @Request() req): Promise<UserResponseDto> {
     return await this.userService.deleteReq(requestId, req.user)
   }
 
@@ -68,7 +71,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Post('user/:id/ban')
-  async banUser(@Param('id', ParseIntPipe) userId: number, @Body() banInfo: BanInfo): Promise<Object> {
+  async banUser(@Param('id', ParseIntPipe) userId: number, @Body() banInfo: BanInfo): Promise<UserResponseDto> {
     return await this.userService.banUser(userId, banInfo)
   }
 
@@ -78,22 +81,22 @@ export class UserController {
   }
 
   @Get('/requests')
-  async adminManagerRequests(): Promise<Array<Object>> {
+  async adminManagerRequests(): Promise<Requests[]> {
     return await this.userService.requests()
   }
 
   @Get('/users/:team?')
-  async getAllUsers(@Query('team') teamId): Promise<Array<Object>>{
+  async getAllUsers(@Query('team') teamId): Promise<User[]>{
     return await this.userService.findAll(teamId)
   }
 
   @Patch('/requests/:id')
-  async populateReq(@Body('approved',ParseBoolPipe) decision, @Param() req): Promise<Object> {
+  async populateReq(@Body('approved',ParseBoolPipe) decision, @Param() req): Promise<UserResponseDto> {
     return await this.userService.populateReq(decision, req.id)
   }
 
   @Get('/manager/:id')
-  async findOneManager(@Param('id', ParseIntPipe) userId): Promise<Object> {
+  async findOneManager(@Param('id', ParseIntPipe) userId): Promise<User> {
     return await this.userService.getOneManager(userId)
   }
 

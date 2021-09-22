@@ -2,14 +2,18 @@ import { ConflictException, HttpException, HttpStatus, Injectable, NotFoundExcep
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt'
-import { Banlist } from 'src/db/entity/banlist.entity';
-import { requestsQueries } from 'src/repositoriers/requests-table';
-import { teamQueries } from 'src/repositoriers/team-table';
-import { userQueries } from 'src/repositoriers/user-table';
 import { Repository } from 'typeorm';
-import { hash } from 'src/services/passwordHash'
-import { MailService } from 'src/mail/mail.service';
-import { SocketGateWay } from 'src/services/socket.gateway';
+import { Banlist } from '../../src/db/entity/banlist.entity';
+import { requestsQueries } from '../../src/repositoriers/requests-table';
+import { teamQueries } from '../../src/repositoriers/team-table';
+import { userQueries } from '../../src/repositoriers/user-table';
+import { hash } from '../../src/services/passwordHash'
+import { MailService } from '../../src/mail/mail.service';
+import { SocketGateWay } from '../../src/services/socket.gateway';
+import { User } from '../../src/db/entity/user.entity';
+import { UserResponseDto } from './DTO/user-response.dto';
+import { Requests } from '../../src/db/entity/requests.entity';
+import { UsersRequestDto } from './DTO/users-request.dto';
 
 @Injectable()
 export class UserService {
@@ -24,7 +28,7 @@ export class UserService {
         private socketMessage: SocketGateWay,
     ) { }
 
-    async extractRequests(user) {
+    async extractRequests(user): Promise<UsersRequestDto| UserResponseDto> {
         try {
             const request = await this.requestQuery.findMyRequests(user)
             if (!request) return {message:"You have no requests"}
@@ -38,7 +42,7 @@ export class UserService {
         }
     }
 
-    async forgotPassRequest(email) {
+    async forgotPassRequest(email): Promise<UserResponseDto> {
         try {
             const dbUser = await this.userQuery.findOne(email)
             if (!dbUser) {
@@ -55,7 +59,7 @@ export class UserService {
         }
     }
 
-    async resetPassword(token, body) {
+    async resetPassword(token, body): Promise<UserResponseDto>{
         try {
             if (body.newPass != body.confirmPass) {
                 return {message: "passwords dont match"}
@@ -73,7 +77,7 @@ export class UserService {
     }
 
 
-    async updateInfo(userInfo, file, user) {
+    async updateInfo(userInfo, file, user): Promise<void> {
         try {
             const isEmailTaken = await this.userQuery.findOne(userInfo.email)
             if(isEmailTaken) throw new ConflictException('This Email Is Taken')
@@ -85,13 +89,13 @@ export class UserService {
             if (userInfo.newPass && (userInfo.newPass == userInfo.confirmPass)) {
                 userDb.password = hash(userInfo.confirmPass)
             }
-            await this.userQuery.saveUser(userDb)
+            return await this.userQuery.saveUser(userDb)
         } catch (error) {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 
-    async profile(user) {
+    async profile(user): Promise<User> {
         try {
             return await this.userQuery.findProfileInfo(user.id)
         } catch (error) {
@@ -99,7 +103,7 @@ export class UserService {
         }
     }
 
-    async deleteReq(requestId, user) {
+    async deleteReq(requestId, user): Promise<UserResponseDto> {
         try {
             const request = await this.requestQuery.findOne(requestId,user)
             if (!request) {
@@ -112,7 +116,7 @@ export class UserService {
         }
     }
 
-    async findById(userId: number) {
+    async findById(userId: number): Promise<User> {
         try {
             const user = await this.userQuery.findOneById(userId)
             if (!user) {
@@ -125,7 +129,7 @@ export class UserService {
         }
     }
 
-    async banUser(userId, banInfo) {
+    async banUser(userId, banInfo): Promise<UserResponseDto> {
         banInfo.type = banInfo.type.toLowerCase()
         try {
             const user = await this.userQuery.findOneById(userId)
@@ -157,7 +161,7 @@ export class UserService {
         }
     }
 
-    async requests() {
+    async requests(): Promise<Requests[]> {
         try {
             return await this.requestQuery.findAllRequests()
         } catch (error) {
@@ -165,7 +169,7 @@ export class UserService {
         }
     }
 
-    async populateReq(isApproved, id) {
+    async populateReq(isApproved, id):Promise<UserResponseDto> {
         try {
             const request = await this.requestQuery.reqAndUser(id)
             if (!request) throw new NotFoundException('There Is No Such Request')
@@ -174,7 +178,7 @@ export class UserService {
             } else if (isApproved) {
                 await this.checkInAnotherTeam(request.user.id, request.teamId)
                 await this.changeTeamStatus(request.user.id, request.teamId, request.requestType)
-                this.socketMessage.notifyUser(request.requestType, request.user.id)
+                this.socketMessage.notifyUser(request.user.id, request.requestType )
             }
             await this.requestQuery.delete(request)
             this.mailService.sendUserConfirmation(request.userEmail, request.requestType, String(isApproved))
@@ -183,7 +187,7 @@ export class UserService {
             throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
         }
     }
-    async changeTeamStatus(userId, teamId, requestType) {
+    async changeTeamStatus(userId, teamId, requestType):Promise<void|string> {
         try {
             if (requestType == 'join') {
                 const user = await this.userQuery.findOneById(userId)
@@ -200,7 +204,7 @@ export class UserService {
         }
     }
 
-    async checkInAnotherTeam(userId, teamId) {
+    async checkInAnotherTeam(userId, teamId): Promise<void> {
         const teamToCheck = teamId == 1 ? 2 : 1
         try {
             const isInTeam = await this.teamQuery.checkInTeam(teamToCheck, userId)
@@ -214,7 +218,7 @@ export class UserService {
         }
     }
 
-    async addToTeam(userId, teamId) {
+    async addToTeam(userId, teamId):Promise<string> {
         try {
             const teamDb = await this.teamQuery.findOne(teamId)
             if(!teamDb) throw new NotFoundException('There Is No Such Team')
@@ -242,7 +246,7 @@ export class UserService {
         }
     }
 
-    async getOneManager(userId) {
+    async getOneManager(userId): Promise<User> {
         try {
             const manager = await this.userQuery.findOneById(userId)
             if (manager.role.id != 2) {
@@ -255,7 +259,7 @@ export class UserService {
         }
     }
 
-    async findAll(teamId) {
+    async findAll(teamId):Promise<User[]> {
         try {
             const team = await this.userQuery.findAll(teamId)
             if (!team) {
@@ -267,7 +271,7 @@ export class UserService {
         }
     }
 
-    async allManagers() {
+    async allManagers():Promise<User[]> {
         try {
             const managers = await this.userQuery.findManagers()
             return managers.filter(manager => {
