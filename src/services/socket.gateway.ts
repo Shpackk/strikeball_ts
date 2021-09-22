@@ -1,5 +1,5 @@
 import { MessageBody, OnGatewayInit, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
-import { userQueries } from "src/repositoriers/user-table";
+import { userQueries } from "../../src/repositoriers/user-table";
 
 @WebSocketGateway()
 export class SocketGateWay implements OnGatewayInit{
@@ -42,9 +42,9 @@ export class SocketGateWay implements OnGatewayInit{
         }
     }
 
-    async notifyUser(body: string, userId: any): Promise<void> {
+    async notifyUser(userId: any, body: string, ): Promise<void> {
         try {
-            
+            this.server.emit(userId, body)
         } catch (error) {
             throw error
         }
