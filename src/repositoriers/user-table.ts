@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { User } from "src/db/entity/user.entity";
+import { User } from "../../src/db/entity/user.entity";
 import { IsNull, Not, Repository } from "typeorm";
 
 
@@ -45,6 +45,19 @@ export class userQueries{
             return await this.userRepo.findOne({
                 where: {
                     email
+                },
+                relations:['role']
+            })
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async findGoogleUser(googleId) {
+        try {
+            return await this.userRepo.findOne({
+                where: {
+                    googleId
                 },
                 relations:['role']
             })
