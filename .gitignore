@@ -3,6 +3,7 @@
 /node_modules
 .env
 /uploads
+TODO(TOFIX).txt
 
 # Logs
 logs
