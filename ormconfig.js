@@ -9,13 +9,13 @@ module.exports = {
    "synchronize": false,
    "logging": false,
    "entities": [
-      __dirname + '/../**/**.entity{.ts,.js}'
+      'dist/src/db/entity/*.entity{.ts,.js}'
    ],
    "migrations": [
-      "dist/db/migrations/*.{ts,js}"
+      "dist/src/db/migrations/*.{ts,js}"
    ],
    "subscribers": [
-      "dist/db/subscriber/**/*.{ts.js}"
+      "dist/src/db/subscriber/**/*.{ts.js}"
    ],
    "cli": {
       "entitiesDir": "src/db/entity",
