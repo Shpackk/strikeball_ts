@@ -46,6 +46,8 @@ services:
       - POSTGRES_DB=strikeball
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456789
+    volumes:
+      - pg_data:/var/lib/postgresql/data
     restart: always
     networks: 
       - node-app
@@ -53,3 +55,5 @@ services:
 networks:
   node-app:
     driver: bridge
+volumes:
+  pg_data:
