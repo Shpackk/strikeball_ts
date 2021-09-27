@@ -2,10 +2,10 @@ FROM node
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json /app/
 
-RUN npm install -g npm@latest && npm install
+RUN npm install
 
-COPY . .
+COPY . /app/
 
 CMD ["npm","run","start:dev"]
