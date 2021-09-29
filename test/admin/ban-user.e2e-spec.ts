@@ -1,39 +1,32 @@
 import * as request from 'supertest';
-import { Test,TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { AppModule } from '../../src/app.module';
+import { AppService } from '../../src/app.service';
+import { HelpService } from 'test/helpService';
 import { Repository } from 'typeorm';
 import { User } from 'src/db/entity/user.entity';
-import { UserService } from 'src/user/user.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
 
 describe('E2E APP TESTS', () => {
-  let service: UserService
-  let repo: Repository<User>
+  let service: HelpService = new HelpService(new Repository<User>())
   let app: INestApplication;
-  // let appService = { findAll: () => ['test'] };
+  let appService = { findAll: () => ['test'] };
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      providers: [
-        UserService,
-        {
-          provide: getRepositoryToken(User),
-          useClass:Repository
-        }
-      ]
+      imports: [AppModule],
     })
-      // .overrideProvider(AppService)
-      // .useValue(appService)
+      .overrideProvider(AppService)
+      .useValue(appService)
       .compile();
-    service = module.get<UserService>(UserService)
+
     app = moduleRef.createNestApplication();
     await app.init();
   });
 
 
-
-
-
-
+  it('should create test users', async () => {
+    await service.createTestUsers()
+  })
 
 
   // test(`get user, ban, check if he is banned`, async () => {
@@ -44,6 +37,7 @@ describe('E2E APP TESTS', () => {
   //   expect(response.status).toBeDefined()
   //   expect(response.body).toBeDefined()
   //   expect(response.body).toEqual(expect.any(Object))
+
 
   //   const userLogin =
   //     await request(app.getHttpServer())
@@ -80,9 +74,6 @@ describe('E2E APP TESTS', () => {
 
 
   afterAll(async () => {
-    // await request(app.getHttpServer())
-    //   .delete('/user/delete')
-    //   .send({name: 'supertest'})
     await app.close();
   });
 });

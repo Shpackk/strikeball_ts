@@ -282,11 +282,4 @@ export class UserService {
         }
     }
 
-    async deleteUser(name) {
-        try {
-            return this.userQuery.deleteUser(name)
-        } catch (error) {
-            throw new HttpException(error, error.status ? error.status : HttpStatus.INTERNAL_SERVER_ERROR) 
-        }
-    }
 }

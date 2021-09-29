@@ -164,11 +164,4 @@ export class userQueries{
         }
     }
 
-    async deleteUser(name) {
-        try {
-            return await this.userRepo.delete({name})
-        } catch (error) {
-            throw error
-        }
-    }
 }
