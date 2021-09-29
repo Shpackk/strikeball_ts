@@ -3,12 +3,13 @@ import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../../src/app.module';
 import { AppService } from '../../src/app.service';
-import { HelpService } from 'test/helpService';
+import { HelpService } from '../../test/helpService';
 import { Repository } from 'typeorm';
-import { User } from 'src/db/entity/user.entity';
+import { User } from '../../src/db/entity/user.entity';
+
 
 describe('E2E APP TESTS', () => {
-  let service: HelpService = new HelpService(new Repository<User>())
+  let service: HelpService =  HelpService.bind((new Repository<User>()))
   let app: INestApplication;
   let appService = { findAll: () => ['test'] };
   beforeAll(async () => {
@@ -25,7 +26,7 @@ describe('E2E APP TESTS', () => {
 
 
   it('should create test users', async () => {
-    await service.createTestUsers()
+    await service.createTestUsers
   })
 
 
@@ -71,7 +72,6 @@ describe('E2E APP TESTS', () => {
   //   expect(bannedLogin.status).toBe(409)
   //   expect(bannedLogin.body).toEqual(expect.any(Object))
   // })
-
 
   afterAll(async () => {
     await app.close();
