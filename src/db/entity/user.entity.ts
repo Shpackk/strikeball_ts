@@ -27,5 +27,4 @@ export class User {
 
     @ManyToOne(() => Team, (team: Team) => team.id)
     team: number;
-    //change to User[] model
 }

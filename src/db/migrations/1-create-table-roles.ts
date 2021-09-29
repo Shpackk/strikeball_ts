@@ -1,9 +1,9 @@
-import {createQueryBuilder, MigrationInterface, QueryRunner, Table} from "typeorm";
+import { MigrationInterface, QueryRunner, Table} from "typeorm";
 
 export class createTableRoles1632311327056 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-         await queryRunner.createTable(new Table({
+        await queryRunner.createTable(new Table({
             name: "roles",
             columns: [
                 {
@@ -20,16 +20,18 @@ export class createTableRoles1632311327056 implements MigrationInterface {
             ]
          }), true)
             .then(async () => {
-            await queryRunner.manager.createQueryBuilder()
-                .insert()
-                .into('roles')
-                .values([
-                    {name: 'user' },
-                    { name: 'manager' },
-                    { name: 'admin' }
-                ])
-            .execute()
-        })
+                await queryRunner
+                    .manager
+                    .createQueryBuilder()
+                    .insert()
+                    .into('roles')
+                    .values([
+                        {name: 'user' },
+                        { name: 'manager' },
+                        { name: 'admin' }
+                    ])
+                .execute()
+            })
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {

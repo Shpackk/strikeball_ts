@@ -1,13 +1,12 @@
 import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { AppModule } from '../src/app.module';
-import { AppService } from '../src/app.service';
+import { AppModule } from '../../src/app.module';
+import { AppService } from '../../src/app.service';
 
-describe('Cool App', () => {
+describe('E2E APP TESTS', () => {
   let app: INestApplication;
   let appService = { findAll: () => ['test'] };
-
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
@@ -20,12 +19,15 @@ describe('Cool App', () => {
     await app.init();
   });
 
-  it(`/POST login`, () => {
-    return request(app.getHttpServer())
-      .post('/auth/login')
-      .send({ email: 'test@example.com', password: 'password' })
-      .expect(404)
-  });
+  it(`Should return token after logging in`, async () => {
+    const response =
+    await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: 'supertest@gmail.com', password: 'supertest' })
+    expect(response.status).toBe(201)
+    expect(response.body).toBeDefined()
+    expect(response.body).toEqual(expect.any(Object))
+  })
 
   afterAll(async () => {
     await app.close();

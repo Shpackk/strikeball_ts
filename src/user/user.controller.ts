@@ -100,4 +100,12 @@ export class UserController {
     return await this.userService.getOneManager(userId)
   }
 
+  @Delete('/user/delete')
+  async deleteUser(@Body('name') name): Promise<any> {
+    if (process.env.NODE_ENV == 'test') {
+      return this.userService.deleteUser(name)
+    }
+    return {message: "Page Not Found"}
+  }
+
 }

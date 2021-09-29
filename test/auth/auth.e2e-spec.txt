@@ -1,0 +1,79 @@
+import * as request from 'supertest';
+import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import { AppModule } from '../../src/app.module';
+import { AppService } from '../../src/app.service';
+
+describe('E2E APP TESTS', () => {
+  let app: INestApplication;
+  let appService = { findAll: () => ['test'] };
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    })
+      .overrideProvider(AppService)
+      .useValue(appService)
+      .compile();
+
+    app = moduleRef.createNestApplication();
+    await app.init();
+  });
+
+  it(`Should return 404 for not found user on login`,async () => {
+    const response =
+      await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: 'test@example.com', password: 'password' })
+
+    expect(response.statusCode).toBe(404)
+    expect(response.body).toBeDefined()
+    expect(response.body).toEqual(expect.any(Object))
+  });
+
+  it(`Sucessfull registration`, async () => {
+    const response =
+      await request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ email: 'supertest@gmail.com', name: 'supertest', role: 'user', password: 'supertest' })
+    expect(response.status).toBeDefined()
+    expect(response.body).toBeDefined()
+    expect(response.body).toEqual(expect.any(Object))
+  })
+
+  it(`User already registered`, async () => {
+    const response =
+      await request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ email: 'supertest@gmail.com', name: 'supertest', role: 'user', password: 'supertest' })
+    expect(response.status).toBe(409)
+    expect(response.body).toBeDefined()
+    expect(response.body).toEqual(expect.any(Object))
+  })
+
+  it(`Should return error due to blank role field`, async () => {
+    const response =
+      await request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ email: 'supertest@gmail.com', name: 'supertest', role: '', password: 'supertest' })
+    expect(response.status).toBe(409)
+    expect(response.body).toBeDefined()
+    expect(response.body).toEqual(expect.any(Object))
+  })
+
+  it(`Should return error due to blank name field`, async () => {
+    const response =
+      await request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ email: 'supertest@gmail.com', name: '', role: 'user', password: 'supertest' })
+    expect(response.status).toBe(409)
+    expect(response.body).toBeDefined()
+    expect(response.body).toEqual(expect.any(Object))
+  })
+
+  afterAll(async () => {
+    await request(app.getHttpServer())
+      .delete('/user/delete')
+      .send({name: 'supertest'})
+    await app.close();
+  });
+});

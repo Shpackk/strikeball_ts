@@ -9,7 +9,9 @@ module.exports = {
    "synchronize": false,
    "logging": false,
    "entities": [
-      'dist/src/db/entity/*.entity{.ts,.js}'
+      // __dirname + '/../**/**.entity{.ts,.js}'
+      // './dist/src/db/entity/*.entity{.ts,.js}' // for npm start
+      'src/db/entity/*.entity{.ts,.js}' // for tests
    ],
    "migrations": [
       "dist/src/db/migrations/*.{ts,js}"
